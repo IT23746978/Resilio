@@ -1,0 +1,63 @@
+[
+  {
+    "resourceType": "Food",
+    "foodType": "Dry Rations",
+    "itemName": "Rice Pack",
+    "quantity": "50 packs",
+    "expiryDate": "2026-12-31",
+    "pickupRequired": true,
+    "availability": "Available Immediately",
+    "location": "Colombo",
+    "donorName": "John Doe",
+    "contactNumber": "0771234567",
+    "contactMethod": "Mobile"
+  },
+  {
+    "resourceType": "Medicine",
+    "medicineType": "Pain relief",
+    "quantity": "20 boxes",
+    "expiryDate": "2025-10-10",
+    "pickupRequired": false,
+    "availability": "Schedule for Later",
+    "location": "Kandy",
+    "donorName": "Jane Smith",
+    "contactNumber": "jane@example.com",
+    "contactMethod": "Email"
+  },
+  {
+    "resourceType": "Clothes",
+    "clothingType": "T-shirts",
+    "size": "Adults",
+    "quantity": "30 items",
+    "pickupRequired": true,
+    "availability": "Available Today Only",
+    "location": "Galle",
+    "donorName": "Sam Wilson",
+    "contactNumber": "0719876543",
+    "contactMethod": "Mobile"
+  },
+  {
+    "resourceType": "Vehicle",
+    "vehicleType": "Truck",
+    "vehicleCapacity": "10 boxes",
+    "availableTime": "Today after 3:00 PM",
+    "quantity": "1 vehicle available",
+    "pickupRequired": false,
+    "availability": "Available Immediately",
+    "location": "Matara",
+    "donorName": "Bruce Wayne",
+    "contactNumber": "bruce@example.com",
+    "contactMethod": "Email"
+  },
+  {
+    "resourceType": "Other",
+    "otherDetails": "Blankets",
+    "quantity": "100 pcs",
+    "pickupRequired": true,
+    "availability": "Available Immediately",
+    "location": "Jaffna",
+    "donorName": "Clark Kent",
+    "contactNumber": "0723456789",
+    "contactMethod": "Mobile"
+  }
+]
