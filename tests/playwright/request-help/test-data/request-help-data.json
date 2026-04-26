@@ -1,0 +1,29 @@
+{
+  "validRequest": {
+    "name": "Thivanka",
+    "contact": "Thivanka@gmail.com",
+    "location": "Colombo",
+    "helpType": "Food",
+    "note": "Need food and medical support urgently"
+  },
+
+  "invalidContactRequest": {
+    "name": "Thivanka",
+    "contact": "wrong-contact",
+    "location": "Colombo",
+    "helpType": "Food",
+    "note": "Need support"
+  },
+
+  "missingNameRequest": {
+    "name": "",
+    "contact": "Thivanka@gmail.com",
+    "location": "Colombo",
+    "helpType": "Medicine",
+    "note": "Need medicine"
+  },
+
+  "helpTypes": ["Food", "Medicine", "Shelter", "Rescue"],
+
+  "verificationCode": "123456"
+}
