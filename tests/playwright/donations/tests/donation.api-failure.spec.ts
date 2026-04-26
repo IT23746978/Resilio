@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { ResourceDonationPage } from '../../pages/ResourceDonationPage';
+import { ResourceDonationPage } from '../pages/ResourceDonationPage';
 
 test.describe('Resource Donation - API Failure Negative Test', () => {
   test('DON-OPT-01: Verify application handles API failure gracefully', async ({ page }) => {

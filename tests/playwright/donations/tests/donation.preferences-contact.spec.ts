@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { ResourceDonationPage } from '../../pages/ResourceDonationPage';
-import { mockDonationApi } from '../../utils/donationApiMock';
+import { ResourceDonationPage } from '../pages/ResourceDonationPage';
+import { mockDonationApi } from '../utils/donationApiMock';
 
 test.describe('Resource Donation - Preferences & Contact', () => {
   test('DON-012: Verify collection preference', async ({ page }) => {

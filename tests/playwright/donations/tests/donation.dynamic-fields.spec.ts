@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
-import { ResourceDonationPage } from '../../pages/ResourceDonationPage';
-import testData from '../../data/donation-test-data.json' assert { type: 'json' };
+import { ResourceDonationPage } from '../pages/ResourceDonationPage';
+import testData from '../test-data/donation-test-data.json' assert { type: 'json' };
 
 test.describe('Resource Donation - Dynamic Fields @demo', () => {
   let donationPage: ResourceDonationPage;

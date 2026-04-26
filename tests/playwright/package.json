@@ -1,0 +1,13 @@
+{
+  "name": "resilio-playwright-tests",
+  "version": "1.0.0",
+  "description": "E2E tests for Resilio",
+  "scripts": {
+    "test": "npx playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.43.0",
+    "@types/node": "^20.12.7",
+    "dotenv": "^16.4.5"
+  }
+}

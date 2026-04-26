@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { ResourceDonationPage } from '../../pages/ResourceDonationPage';
+import { ResourceDonationPage } from '../pages/ResourceDonationPage';
 
 test.describe('Resource Donation - Offline', () => {
   test('DON-016: Verify offline donation handling', async ({ page, context }) => {

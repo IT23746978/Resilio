@@ -4,7 +4,8 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 export default defineConfig({
-  testDir: './tests',
+  testDir: '.',
+  testMatch: ['**/tests/**/*.spec.js', '**/tests/**/*.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 1,
