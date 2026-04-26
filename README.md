@@ -1,25 +1,26 @@
 # Resilio — Disaster Relief Resource Management System
 
-[![CI - Backend](https://github.com/nesanka360/Resilio/actions/workflows/ci-backend.yml/badge.svg)](https://github.com/nesanka360/Resilio/actions/workflows/ci-backend.yml)
-[![CI - Frontend](https://github.com/nesanka360/Resilio/actions/workflows/ci-frontend.yml/badge.svg)](https://github.com/nesanka360/Resilio/actions/workflows/ci-frontend.yml)
-[![CD - Azure](https://github.com/nesanka360/Resilio/actions/workflows/cd-azure.yml/badge.svg?branch=feature/nesanka/sprint3-devops)](https://github.com/nesanka360/Resilio/actions/workflows/cd-azure.yml)
+[![CI - Backend](https://github.com/IT23746978/Resilio/actions/workflows/pr-backend-main.yml/badge.svg)](https://github.com/IT23746978/Resilio/actions/workflows/pr-backend-main.yml)
+[![CI - Frontend](https://github.com/IT23746978/Resilio/actions/workflows/pr-frontend-main.yml/badge.svg)](https://github.com/IT23746978/Resilio/actions/workflows/pr-frontend-main.yml)
 
-A full-stack web application for managing disaster relief resources, volunteers, and relief requests. 
+A full-stack web application for managing disaster relief resources, volunteers, and relief requests.
+
+It supports three user roles: **affected persons* and **Admin**, with a fully passwordless OTP-based authentication system.
 
 ---
-
 
 ## Technology Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React.js + Vite + Axios |
-| Backend | ASP.NET Web API (.NET 8) + ADO.NET |
+| Frontend | React 18 + Vite + CSS Modules (Native Fetch API) |
+| Backend | ASP.NET Core 8 Web API (C#) |
 | Database | Azure SQL Database (SQL Server) |
+| Auth | Passwordless OTP (Email via Gmail SMTP) + JWT Auth |
 | Version Control | GitHub |
 | CI/CD | GitHub Actions |
-| Deployment | Azure App Service |
-| Testing | xUnit, Coverlet, Selenium, JMeter |
+| Deployment | Azure App Service + Azure Static Web Apps |
+| Testing | xUnit, Coverlet |
 | Project Management | JIRA (Scrum) |
 
 ---
@@ -35,9 +36,6 @@ A full-stack web application for managing disaster relief resources, volunteers,
 | Staging | Backend API | https://resilio-backend-staging-a3edfwg9cjgzg2cd.eastasia-01.azurewebsites.net |
 | Staging | Health Check | https://resilio-backend-staging-a3edfwg9cjgzg2cd.eastasia-01.azurewebsites.net/api/health |
 
-> ⚠️ Note: Staging frontend is not separately deployed.
-> Azure deployment slots require a Standard plan — staging is
-> implemented as a separate App Service due to free tier limitations.
 
 ---
 
@@ -48,32 +46,30 @@ Resilio/
 ├── .github/
 │   └── workflows/
 │       ├── ci-backend.yml        # ASP.NET build and test pipeline
-│       └── ci-frontend.yml       # React build pipeline
+│       ├── ci-frontend.yml       # React build pipeline
+│       └── cd-azure.yml          # Azure deployment pipeline
 ├── backend/
-│   ├── Resilio.API/              # ASP.NET Web API — controllers, middleware
+│   ├── Resilio.API/              # ASP.NET Web API — controllers, middleware, JWT setup
 │   ├── Resilio.Core/             # Models, DTOs, interfaces
-│   ├── Resilio.Infrastructure/   # Repositories, data access (ADO.NET)
+│   ├── Resilio.Infrastructure/   # Repositories, data access
 │   └── Resilio.Tests/            # xUnit unit tests
 ├── database/
-│   └── migrations/               # SQL migration scripts (versioned)
+│   ├── init.sql                  # Main DB schema definitions
+│   └── resources.sql             # Resources allocation script
 ├── docs/
 │   ├── api/                      # Swagger JSON and API documentation
 │   ├── architecture/             # System and deployment diagrams
 │   ├── coverage/                 # Coverlet code coverage reports
 │   ├── deployment/               # Deployment and environment setup guides
 │   ├── retrospectives/           # Sprint retrospective notes
-│   ├── standups/                 # Daily standup logs
-│   └── testing/                  # Test plans, test cases, performance reports
-├── frontend/
-│   ├── public/
-│   └── src/
-│       ├── components/           # Reusable React components
-│       ├── context/              # React context (auth, state)
-│       ├── pages/                # Page-level components
-│       └── services/             # Axios API service calls
-└── tests/
-    ├── jmeter/                   # JMeter performance test plans
-    └── selenium/                 # Selenium E2E test project
+│   └── standups/                 # Daily standup logs
+└── frontend/
+    ├── public/
+    └── src/
+        ├── api/                  # Native fetch API clients (httpClient.js)
+        ├── auth/                 # Context API components (AuthContext.jsx)
+        ├── components/           # Reusable React components
+        └── pages/                # Admin, Victim, and Volunteer page screens
 ```
 
 ---
@@ -85,7 +81,7 @@ Make sure you have the following installed before setting up the project locally
 - [Git](https://git-scm.com/)
 - [Node.js v20+](https://nodejs.org/)
 - [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- A running SQL Server instance (Local or Azure SQL)
 
 ---
 
@@ -94,13 +90,13 @@ Make sure you have the following installed before setting up the project locally
 ### Step 1 — Clone the repository
 
 ```bash
-git clone https://github.com/Sudheera-w/Resilio.git
+git clone https://github.com/IT23746978/Resilio.git
 cd Resilio
 ```
 
-### Step 2 — Set up environment files
+### Step 2 — Configure the backend environment
 
-**Backend** — create `backend/Resilio.API/appsettings.Development.json`:
+Create `backend/Resilio.API/appsettings.Development.json`:
 
 ```json
 {
@@ -111,97 +107,72 @@ cd Resilio
     }
   },
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost,1433;Database=resilio-db;User ID=sa;Password=Resilio@Docker123;TrustServerCertificate=True;"
+    "DefaultConnection": "Server=tcp:resilio-sqlserver.database.windows.net,1433;Initial Catalog=resilio-db;Persist Security Info=False;User ID=ResilioAdmin;Password=Resilio@csp#Admin;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  },
+  "Auth": {
+    "JwtKey": "your-secret-jwt-key-min-32-chars",
+    "JwtIssuer": "Resilio",
+    "JwtAudience": "ResilioClient"
+  },
+  "Otp": {
+    "HmacSecret": "your-otp-hmac-secret"
+  },
+  "TokenHashing": {
+    "HmacSecret": "your-token-hmac-secret"
+  },
+  "Gmail": {
+    "SenderEmail": "your-gmail@gmail.com",
+    "AppPassword": "your-app-password"
   }
 }
 ```
 
-> ⚠️ This file is in `.gitignore` and will not be present after cloning. You must create it manually.
+> ⚠️ This file is in `.gitignore`. You must create it manually and fill in valid SQL credentials and secure HMAC/JWT keys.
 
-### Step 3 — Run with Docker Compose
+### Step 3 — Database Initialization
 
-From the project root:
+Execute `database/init.sql` against your SQL Server using Azure Data Studio or SSMS to build the required tables (`Users`, `ReliefRequests`, `Volunteers`, `OtpRequests`, etc.).
 
+### Step 4 — Run the applications
+
+**Backend:**
 ```bash
-docker compose up --build
-```
-
-This starts three containers:
-- SQL Server on `localhost:1433`
-- ASP.NET backend on `localhost:5000`
-- React frontend on `localhost:3000`
-
-### Step 4 — Verify everything is running
-
-| Check | URL |
-|---|---|
-| React frontend | http://localhost:3000 |
-| Swagger UI | http://localhost:5000/swagger |
-| Health check | http://localhost:5000/api/health |
-| Database test | http://localhost:5000/api/test-db |
-
-### Step 5 — Run database migrations
-
-Once the containers are running, run the migration scripts against the local SQL Server using Azure Data Studio or any SQL client connecting to `localhost:1433` with user `sa` and password `Resilio@Docker123`.
-
-Migration scripts are located in `/database/migrations/`.
-
----
-
-## Running Without Docker
-
-### Backend only
-
-```bash
-cd backend
+cd backend/Resilio.API
 dotnet restore
-dotnet run --project Resilio.API
+dotnet run
 ```
+*Swagger UI is available at `http://localhost:[port]/swagger`*
 
-> Make sure `appsettings.Development.json` is present with a valid connection string pointing to an accessible SQL Server instance.
-
-### Frontend only
-
+**Frontend:**
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
+*Frontend runs on `http://localhost:5173`*
 
-Frontend runs on `http://localhost:5173` by default when using Vite dev server.
+---
+
+## Authentication Flow
+
+The application relies on a **passwordless OTP** structure:
+1. User requests login via email at `POST /api/auth/start`.
+2. A 6-digit OTP is sent via Gmail SMTP.
+3. User verifies code at `POST /api/auth/verify`.
+4. API issues short-lived **JWT access tokens** and long-lived, encrypted **Refresh Tokens**.
+*(Note: Sensitive data such as OTP codes and refresh tokens are HMAC-hashed internally before database storage).*
 
 ---
 
 ## Running Tests
 
-## Running Database Migrations
-
-Migration scripts are located in `/database/migrations/` and follow the versioned naming convention:
-V001__description.sql
-V002__description.sql
-V003__description.sql
-
-### Apply migrations manually
-
-Connect to the database using Azure Data Studio or any SQL client, then run scripts **in version order**:
-
-| Version | File | Description |
-|---|---|---|
-| V001 | init.sql | Initial schema — Users, ReliefRequests tables |
-| V003 | V003__create_resources_table.sql | Resources and ResourceAllocations tables |
-
-> ⚠️ Always run migrations in order. Never skip a version.
-> ⚠️ For production, run against Azure SQL using the connection string from Azure App Service configuration.
-
 ### Unit tests
-
 ```bash
 cd backend
 dotnet test Resilio.sln --configuration Release --verbosity normal
 ```
 
 ### Code coverage
-
 ```bash
 cd backend
 dotnet test Resilio.sln --collect:"XPlat Code Coverage"
@@ -220,12 +191,9 @@ dotnet test Resilio.sln --collect:"XPlat Code Coverage"
 | `test/[name]/[STORY-ID]-description` | Pipeline or testing validation (never merged) |
 
 ### Branch protection rules
-
-- PRs required before merging to `main` or `develop`
-- Both CI pipelines (`build-and-test` and `build`) must pass before merge
-- Force pushes are blocked on `main` and `develop`
-
-
+- PRs required before merging to `main` or `develop`.
+- Both CI pipelines (`build-and-test` and `build`) must pass before merge.
+- Force pushes are blocked on `main` and `develop`.
 
 ---
 
@@ -238,21 +206,26 @@ Every pull request to `main` or `develop` automatically triggers:
 | CI - Backend | Restores NuGet packages, builds solution, runs xUnit tests |
 | CI - Frontend | Installs npm packages, runs Vite build |
 
-If either pipeline fails the PR cannot be merged.
+If either pipeline fails, the PR cannot be merged.
 
-Continuous deployment to Azure App Service is configured in Sprint 2.
+Continuous deployment to Azure App Service and Static Web Apps is configured on merges to `main` via `cd-azure.yml`.
 
 ---
 
-## Environment Variables
+## Environment Variables (Azure Production)
 
-The following environment variable must be set in Azure App Service for production:
+The following Environment Variables / App Settings must be configured in Azure for the backend to function:
 
 | Name | Description |
 |---|---|
-| `ConnectionStrings__DefaultConnection` | Azure SQL Database connection string |
-
-For local development this is handled through `appsettings.Development.json` (see setup above).
+| `ConnectionStrings__DefaultConnection` | Database connection string |
+| `Auth__JwtKey` | Signing key for JWTs (min 32 chars) |
+| `Auth__JwtIssuer` | JWT issuer string |
+| `Auth__JwtAudience` | JWT audience string |
+| `Otp__HmacSecret` | Server secret to encrypt OTP hashes |
+| `TokenHashing__HmacSecret` | Server secret to encrypt Refresh Tokens |
+| `Gmail__SenderEmail` | Auth email address |
+| `Gmail__AppPassword` | App-specific password for SMTP relay |
 
 ---
 
@@ -260,9 +233,9 @@ For local development this is handled through `appsettings.Development.json` (se
 
 | Document | Location |
 |---|---|
-| Deployment Guide | /docs/deployment/README.md |
-| API Documentation | /docs/api/ |
-| Test Plan | /docs/testing/ |
-| Architecture Diagrams | /docs/architecture/ |
-| Sprint Retrospectives | /docs/retrospectives/ |
-| Daily Standup Logs | /docs/standups/ |
+| Deployment Guide | `/docs/deployment/README.md` |
+| API Documentation | `/docs/api/` |
+| Test Plan | `/docs/testing/` |
+| Architecture Diagrams | `/docs/architecture/` |
+| Sprint Retrospectives | `/docs/retrospectives/` |
+| Daily Standup Logs | `/docs/standups/` |
